@@ -1,0 +1,109 @@
+##
+## Custom nginx file
+##
+
+server {
+
+    # Forward all port 80 to port 443
+    #if ($http_x_forwarded_port != 443) { rewrite ^ https://$http_host$request_uri?; }
+
+    #listen   80; ## listen for ipv4; this line is default and implied
+    #listen   [::]:80 default_server ipv6only=on; ## listen for ipv6
+
+    # Document Root
+    # root /usr/share/nginx/www;
+    root {{www_root}};
+
+    # Server name
+    server_name {{localhost}};
+
+    # Index file
+    index index.php index.htm;
+
+    # Increase max size of post to 10m (for file uploads)
+    client_max_body_size 20m;
+
+    location ~ /\. 
+    {
+        return 404;
+    }
+
+    location / 
+    {    
+        # Enable CORS http://enable-cors.org/
+        # http://blog.rogeriopvl.com/archives/nginx-and-the-http-options-method/
+        if ($request_method = OPTIONS ) {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization";
+            add_header Access-Control-Allow-Credentials "true";
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 200;
+        }
+        
+        # From http://wiki.nginx.org/NginxHttpCoreModule#try_files
+        # Unlike rewrite, $args are not automatically preserved if the fallback is 
+        # not a named location. If you need args preserved, you must do so explicitly:
+        try_files $uri $uri/ /index.php?q=$uri&$args;
+    }
+
+    # Block access to Kohana system files
+    location ~* ^/(modules|application|system|dotcloud) 
+    {
+        return 404;
+    }
+
+    #location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        #try_files $uri $uri/ /index.html;
+        # Uncomment to enable naxsi on this location
+        # include /etc/nginx/naxsi.rules
+    #}
+
+    #error_page 404 /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    #error_page 500 502 503 504 /50x.html;
+    #location = /50x.html {
+    #   root /usr/share/nginx/www;
+    #}
+    
+    # pass PHP scripts to FastCGI via socket
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        #
+        # With php5-fpm:
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+
+}
+
+# HTTPS server
+#
+#server {
+#   listen 443;
+#   server_name localhost;
+#
+#   root html;
+#   index index.html index.htm;
+#
+#   ssl on;
+#   ssl_certificate cert.pem;
+#   ssl_certificate_key cert.key;
+#
+#   ssl_session_timeout 5m;
+#
+#   ssl_protocols SSLv3 TLSv1;
+#   ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP;
+#   ssl_prefer_server_ciphers on;
+#
+#   location / {
+#       try_files $uri $uri/ =404;
+#   }
+#}

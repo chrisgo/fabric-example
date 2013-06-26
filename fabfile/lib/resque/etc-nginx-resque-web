@@ -1,0 +1,22 @@
+# Put this in /etc/nginx/resque
+
+upstream unicorn_server {
+  server unix:/var/run/unicorn.sock fail_timeout=0;
+}
+
+server {
+  listen	    80;
+  server_name {{localhost}};  
+  access_log  /var/log/nginx/resque-web.access.log;
+  error_log   /var/log/nginx/resque-web.error.log;
+  
+  location / {
+    #root /var/www/resque-web/public;
+    proxy_set_header  X-Real-IP        $remote_addr;
+    proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_set_header  Host             $http_host;
+    proxy_redirect    off;
+    proxy_pass        http://unicorn_server;
+  }
+}
+
