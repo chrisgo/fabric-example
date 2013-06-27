@@ -63,11 +63,11 @@ def server_normalize():
 	sudo('apt-get install -y make g++ pkg-config gcc build-essential')
 	sudo('apt-get install -y libfuse-dev libxml2 libxml2-dev curl libcurl3 libcurl3-dev')
 	with cd('~'):
-		run('wget http://s3fs.googlecode.com/files/s3fs-%s.tar.gz' % s3fs_version)
-		run('tar xzvf s3fs-%s.tar.gz' % s3fs_version)
+		sudo('wget http://s3fs.googlecode.com/files/s3fs-%s.tar.gz' % s3fs_version)
+		sudo('tar xzvf s3fs-%s.tar.gz' % s3fs_version)
 	with cd('~/s3fs-%s' % s3fs_version):
- 		run('./configure --prefix=/usr')
- 		run('make')
+ 		sudo('./configure --prefix=/usr')
+ 		sudo('make')
  	with cd('~/s3fs-%s' % s3fs_version):
  		sudo('make install')
  	print('... done installing S3FS')	
