@@ -17,7 +17,8 @@ def add_keys():
 	# Create the private/public key for the user on this server
 	if not exists('/home/%s/.ssh/id_rsa.pub' % env.user):
 		print("... creating new SSH key")
-		run('mkdir ~/.ssh')
+		with settings(warn_only=True):
+			run('mkdir ~/.ssh')
 		# Try to get rid of the prompts
 		#prompts = []
 		#prompts += expect('What is your name?','Jasper')
@@ -27,7 +28,7 @@ def add_keys():
 		# ssh-kegen -b 2048 -t rsa -f /tmp/sshkey -q -N ""
 		# 
 		#run('ssh-keygen -t rsa', pty=False)
-		run('ssh-kegen -t rsa -f /tmp/sshkey -q -N ""', pty=False)
+		run('ssh-keygen -t rsa -f /tmp/sshkey -q -N ""', pty=False)
 		util.done()
 	else:
 		util.done('Existing key found')
