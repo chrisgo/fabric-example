@@ -1,0 +1,8 @@
+# Sample (with S3FS fuse mount)
+LABEL=DOROOT       /               ext4    errors=remount-ro 0       1
+proc             /proc         proc     defaults                   0 0
+s3fs#s3fs.domain.com	/mnt/s3fs/	fuse	allow_other	0	0
+
+# Another sample
+LABEL=DOROOT       /               ext4    errors=remount-ro 0       1
+proc             /proc         proc     defaults                   0 0

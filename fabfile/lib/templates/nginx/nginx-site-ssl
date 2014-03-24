@@ -1,0 +1,124 @@
+##
+## Custom nginx file (SSL)
+##
+
+server {
+
+    # Forward all port 80 to port 443
+    if ($http_x_forwarded_port != 443) { rewrite ^ https://$http_host$request_uri?; }
+
+}
+
+server {
+
+	# Port
+    listen   443;
+
+    # Document Root
+    root {{www_root}};
+
+    # Server name
+    server_name {{localhost}};
+
+    # Index file
+    index index.php index.htm;
+
+    # Increase max size of post to 10m (for file uploads)
+    client_max_body_size 20m;
+
+	# SSL
+    ssl on;
+    ssl_certificate /home/propertyrate/ssl/{{www_root}}.com.crt;
+    ssl_certificate_key /home/propertyrate/ssl/{{www_root}}.com.key;
+
+    ssl_session_timeout 5m;
+    ssl_session_cache shared:SSL:10m; # Reuse session => less handshakes => better perfs
+
+    ssl_protocols TLSv1 SSLv3;
+    #ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv3:+EXP;
+    ssl_ciphers ALL:!ADH:!EXP:!LOW:!RC2:!3DES:!SEED:RC4+RSA:+HIGH:+MEDIUM;
+    ssl_prefer_server_ciphers on;
+
+	# Gzip compression
+    gzip  on;
+    gzip_http_version 1.0;
+    gzip_comp_level 2;
+    gzip_proxied any;
+    gzip_min_length  1100;
+    gzip_buffers 16 8k;
+    gzip_types text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript image/gif image/jpeg image/png;
+
+    gzip_disable "MSIE [1-6].(?!.*SV1)";
+    # Set a vary header so downstream proxies don't send cached gzipped
+    # content to IE6
+    gzip_vary on;
+
+    # Don't cache custom js and custom css
+    location ~ (base.js|style.css|script.js|base.deprecate.js)$ {
+        expires epoch;
+    }
+    
+    # Cache other static files
+    location /media/ {
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff)(\?ver=[0-9.]+)?$ {
+            expires 30d;
+        }
+    }
+
+	# Main 404
+    location ~ /\. 
+    {
+        return 404;
+    }
+
+	# CORS
+    location / 
+    {    
+        # Enable CORS http://enable-cors.org/
+        # http://blog.rogeriopvl.com/archives/nginx-and-the-http-options-method/
+        if ($request_method = OPTIONS ) {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "GET, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization";
+            add_header Access-Control-Allow-Credentials "true";
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 200;
+        }
+        
+        # From http://wiki.nginx.org/NginxHttpCoreModule#try_files
+        # Unlike rewrite, $args are not automatically preserved if the fallback is 
+        # not a named location. If you need args preserved, you must do so explicitly:
+        try_files $uri $uri/ /index.php?q=$uri&$args;
+    }
+
+    # Block access to Kohana system files
+    location ~* ^/(modules|application|system) 
+    {
+        return 404;
+    }
+    
+    # Custom rrror pages
+    #error_page 404 /404.html;
+    # redirect server error pages to the static page /50x.html
+    #
+    #error_page 500 502 503 504 /50x.html;
+    #location = /50x.html {
+    #   root /usr/share/nginx/www;
+    #}
+    
+    # Pass PHP scripts to FastCGI via socket
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        #
+        # With php5-fpm:
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param KOHANA_ENV {{environment}};
+        include fastcgi_params;
+    }
+
+}
+
+

@@ -9,16 +9,9 @@ import json
 import datetime
 import inspect
 from environments import *
+from project import *
 from providers import *
-from providers import digitalocean
-from providers import vagrant
-from providers import linode
-from providers import ec2
 from roles import *
-from roles import www
-from roles import database
-from roles import resque
-from roles import balancer
 
 """
 Usage:
@@ -40,7 +33,7 @@ fab dev www project_setup            # step 3 (project specific)
 #               Environments
 # ========================================
 
-@task
+@task 
 def production():
     """
     ......... <environment> set up production environment
@@ -55,8 +48,8 @@ def production():
     for roledef in roledefs:
         print(roledef + " => " + ', '.join(roledefs[roledef]))
     print("\n")
-    check = prompt("Updating PRODUCTION, please type password:", "")
-    if (check!=env.password):
+    check = prompt("Updating PRODUCTION, please type project name:", "")
+    if (check.upper() != env.git_project.upper()):
         print("\n")
         print("*******************************")
         print("***** FABRIC TASK ABORTED *****")
@@ -86,14 +79,14 @@ def developer(user='chris'):
     """
     ......... <environment> set up developer environment
     """
-    environment_name = "environments.dev_%s" % user
+    environment_name = "environments.developer_%s" % user
     print("***** DEVELOPER (%s) *****" % environment_name)
     _environment_object = __import__(environment_name, globals(), locals(), ['object'], -1)
     _config_method = getattr(_environment_object, 'config')
     env.config = _config_method()
 
 # ========================================
-#               Branches
+#               Branches 
 # ========================================
 
 @task
@@ -115,14 +108,14 @@ def branch(branch_name):
     env.hosts = env.roledefs['www']
 
 # ========================================
-#                  Roles
+#                  Roles 
 # ========================================
 
 @task
 def www():
     """
     ......... <role> www (web+app) role
-    """
+    """   
     env.roledefs = env.config.get('roledefs')
     env.server_role = 'www'
     env.hosts = env.roledefs['www']
@@ -188,7 +181,7 @@ def server_normalize():
     if not(provider in env.providers):
         abort("Provider: %s not found" % provider)
     else:
-        # dynamically load function
+        # dynamically load function 
         getattr(getattr(providers, provider), "normalize")()
     # Then run base server setup
     roles.server_normalize()
@@ -237,37 +230,24 @@ def release():
         www_root = www_root % env.git_project.lower()
     # Deploy build
     print("Deploy Build ...")
-    with cd("%s%s" % (env.project_dir, env.git_project)):
+    with cd("%s%s" % (env.project_dir.lower(), env.git_project.lower())):
         run('git checkout %s' % env.branch)
         run('git reset --hard HEAD')
         run('git clean -f -d')
         run('git pull')
         # Rsync code
         print('Performing rsync to %s' % www_root)
-        source = '%s%s/%s' % (env.project_dir, env.git_project, env.app_root)
+        source = '%s%s/%s' % (env.project_dir.lower(), env.git_project.lower(), env.app_root)
         target = www_root
-        run("rsync -oavz --exclude 'application/log*' \
+        run("rsync -oavz --delete \
+                         --exclude 'application/log*' \
                          --exclude 'application/cache*' \
-                         %s %s" %
+                         %s %s" % 
                          (source, target))
-        # Also rsync the 3 legacy folders (asc, business & lib)
-        # TODO: Remove this once the legacy stuff is deprecated
-        source_base_dir = os.path.dirname(source.rstrip('/'))
-        target_base_dir = os.path.dirname(www_root.rstrip('/'))
-        # (1) asc folder
-        run("rsync -oavz %s/asc %s" % (source_base_dir, target_base_dir))
-        # (2) business folder
-        run("rsync -oavz %s/business %s" % (source_base_dir, target_base_dir))
-        # (3) lib folder
-        run("rsync -oavz %s/lib %s" % (source_base_dir, target_base_dir))
     # Update build date
     build_date = datetime.datetime.now().strftime("%m/%d/%y %I:%M %p %Z")
     print("Updating build date to %s" % build_date)
-    sed('%s/business/core/constants.php' % os.path.dirname(www_root.rstrip('/')),
+    sed('%s/web/application/config/app.php' % os.path.dirname(www_root.rstrip('/')), 
         '\{\{BUILD.DATE\}\}',
         build_date)
-    sed('%s/web/application/config/app.php' % os.path.dirname(www_root.rstrip('/')),
-        '\{\{BUILD.DATE\}\}',
-        build_date)
-
 

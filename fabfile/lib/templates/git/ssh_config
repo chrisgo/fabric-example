@@ -1,0 +1,4 @@
+Host git-server
+	HostName {{git-server}}
+	User git
+	IdentityFile /home/{{home}}/.ssh/id_rsa_deploy

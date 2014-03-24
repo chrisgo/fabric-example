@@ -3,15 +3,27 @@
 def config():
     return {
         'provider':         'digitalocean',
-        'document_root':    '/tmp/s3fs/',
+        'mount_root':       '/tmp/s3fs/',
         'www_root':         '/var/www/%s/web/',		# /var/www/%s/web/
         'branch':           'master',               # branch
-        'mount_s3fs':		False,
-        'enable_ssl':		False,
+        'environment':      'DEVELOPMENT',
         'server_names': {
-            'www':          ['dev-www.domain.com'],
+            'www':              ['dev-www.domain.com'],
         },
         'roledefs': {
-            'www': 	        ['dev-www1.domain.com'],
-        }
+            'www':              ['dev-www1.domain.com'],
+            'database':         ['dev-db1.domain.com'],
+            #'database_master': [''],
+            #'database_slave':  [''],
+            #'database_backup': [''],
+            'resque':           ['dev-resque1.domain.com'],
+            #'cron':            [''],
+            #'worker':          [''],
+        },
+        'enables': {
+            'ssl':          False,
+            's3fs':         False,
+            'newrelic':     False,
+            'papertrail':   False,
+        },
     }

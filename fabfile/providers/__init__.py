@@ -3,5 +3,5 @@ from fabric.api import *
 from fabric.contrib.console import confirm
 from fabric.contrib.files import *
 
-__all__ = []
+__all__ = ['digitalocean','ec2','linode','vagrant']
 

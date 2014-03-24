@@ -1,15 +1,6 @@
 SSL certificates 
 ====
 
-I usually put my SSL certificates and key in here.  It's probably not the more secure thing in the world but it's convenient.  So the files here should be:
-
-domain.com.key
-domain.com.crt
-
-----
-
-### Notes:
-
 For Apache:
 Use: gd_bundle.crt and domain.com.crt
 

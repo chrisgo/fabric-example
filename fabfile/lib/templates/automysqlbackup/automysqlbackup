@@ -8,7 +8,7 @@
 
 # Username to access the MySQL server e.g. password
 #PASSWORD=`grep password /etc/mysql/debian.cnf | tail -n 1 | cut -d"=" -f2 | awk '{print $1}'`
-PASSWORD=monkey2004
+PASSWORD={{password}}
 
 # Host name (or IP address) of MySQL server e.g localhost
 DBHOST=localhost
@@ -30,7 +30,8 @@ DBNAMES=`mysql --defaults-file=/etc/mysql/debian.cnf --execute="SHOW DATABASES" 
 # subfolders will be database names. Note that backups will be owned by
 # root, with Unix rights 0600.
 #BACKUPDIR="/var/lib/automysqlbackup"
-BACKUPDIR="/mnt/s3fs/database"
+##BACKUPDIR="/mnt/s3fs/database"
+BACKUPDIR="{{backup_dir}}
 
 # Mail setup
 # What would you like to be mailed to you?
