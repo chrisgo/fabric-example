@@ -1,6 +1,8 @@
 Fabric Example
 ====
 
+10/27/21 CG: New fabric2-example is here https://github.com/chrisgo/fabric2-example
+
 Example of how you can organize a set of fabric scripts.  Mostly this is just how I organized my fabric build and release process and sharing to possibly help other folks get started.
 
 * Fabric: http://fabfile.org
